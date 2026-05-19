@@ -22,4 +22,7 @@ CREATE TABLE users_books (
 	"condition" varchar NOT NULL
 );
 
-INSERT INTO users VALUES (0, 'testUser', 'testPassword', 'testEmail', '123-456-7890', '123 Main St')
+INSERT INTO users VALUES (0, 'testUser', 'testPassword', 'testEmail', '123-456-7890', '123 Main St');
+
+INSERT INTO users ("username", "password", "email", "phone", "address")
+VALUES ('admin', '$2b$12$kaE6SnaSGjH3xeRJkrdGUepWRmP/A119KJRsWsKE8.ZEzgEiB0hXO', 'admin@bookexchange.com', '000-000-0000', '00000');

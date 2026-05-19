@@ -16,6 +16,10 @@ router.post('/addOldBook', dbController.findBook, apiController.findBook, apiCon
   return res.status(200).json(res.locals);
 });
 
+router.post('/addManualBook', dbController.findBook, dbController.setBookFromBody, dbController.addBook, dbController.addOldBook, (req, res) => {
+  return res.status(200).json(res.locals);
+});
+
 router.post('/findOldBook', dbController.findOldBook, (req, res) => {
   return res.status(200).json(res.locals.oldbooks);
 });
@@ -37,6 +41,10 @@ router.get('/getOutgoingInfo/:userId', dbController.getOutgoingRequests, (req, r
 
 router.post('/shipped', dbController.shipBook, (req, res) => {
   return res.status(200).json(res.locals.shipped)
+})
+
+router.post('/acceptRequest', dbController.acceptRequest, (req, res) => {
+  return res.status(200).json({ accepted: res.locals.accepted })
 })
 ////////////////////////////////
 

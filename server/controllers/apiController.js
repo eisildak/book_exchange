@@ -5,50 +5,28 @@ const apiController = {};
 apiController.findBook = (req, res, next) => {
   if (res.locals.bookInDB) return next();
   const { isbn } = req.body;
-  let authorEndpoint;
-  axios.get(`https://openlibrary.org/isbn/${isbn}.json`)
+  axios.get(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
     .then((response) => {
-      const bookInfo = response.data;
-      let { title, authors, subjects } = bookInfo;
-      if (!subjects) subjects = ['Unknown'];
-      if (!authors) authors = ['Unknown'];
-      res.locals.authorEndpoint = authors[0].key;
-      res.locals.book = { isbn_13: isbn, title: title, subjects: subjects[0] };
+      const items = response.data.items;
+      if (!items || items.length === 0) {
+        return next({ log: 'Book not found', message: { err: 'ISBN not found in Google Books' } });
+      }
+      const info = items[0].volumeInfo;
+      res.locals.book = {
+        isbn_13: isbn,
+        title: info.title || 'Unknown',
+        author: info.authors ? info.authors.join(', ') : 'Unknown',
+        subjects: info.categories ? info.categories[0] : 'Unknown',
+      };
       return next();
     })
     .catch((err) => {
-      const defaultErr = {
-        log: 'ERROR found in apiController.findBook',
-        message: { err: `There was an error${err}` },
-      };
-      return next(defaultErr);
+      return next({ log: 'ERROR in apiController.findBook', message: { err: String(err) } });
     });
 };
 
-apiController.findAuthor = (req, res, next) => {
-  if (res.locals.bookInDB) return next();
-  const { authorEndpoint } = res.locals;
-  // if author code was not found in apiController.findBook, move onto next middleware function 
-  // and make author property unknown
-  if (!authorEndpoint) {
-    res.locals.book.author = 'Unknown';
-    return next();
-  }
-  axios.get(`https://openlibrary.org/${authorEndpoint}.json`)
-    .then((response) => {
-      const authorInfo = response.data;
-      const author = authorInfo.name;
-      res.locals.book.author = author;
-      return next();
-    })
-    .catch((err) => {
-      const defaultErr = {
-        log: 'ERROR found in apiController.findAuthor',
-        message: { err: `There was an error${err}` },
-      };
-      return next(defaultErr);
-    });
-};
+// Author lookup now handled inside findBook via Google Books
+apiController.findAuthor = (req, res, next) => next();
 
 module.exports = apiController;
 

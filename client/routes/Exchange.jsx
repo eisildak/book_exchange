@@ -9,7 +9,7 @@ class Exchange extends React.Component {
          outgoingRequests: []
         };
 
-        this.shipped = this.shipped.bind(this);
+        this.acceptRequest = this.acceptRequest.bind(this);
     }
 
     componentDidMount() {
@@ -76,24 +76,18 @@ class Exchange extends React.Component {
     }
 
 
-    shipped (event) {
-        const row = event.target.id; // ??? pretty sure this is right yeah probably
-        const body = {
-          title: this.state.incomingRequests[row].title,
-          username: this.state.incomingRequests[row].userId,
-        };
-        // Send post request to remove row from users_books table.
-        // Body of request will have book isbn and requester username.
-        // Server will query database for row in users_books where isbn and requester username match request body.
-        // Get Users Books table
-        fetch('/api/shipped'), {
+    acceptRequest (event) {
+        const row = event.target.id;
+        const usersBookId = this.state.incomingRequests[row].users_books_id;
+        fetch('/api/acceptRequest', {
             method: 'POST',
-            body: JSON.stringify(body),
-        }
-        // .then(response => response.json())
-        .then(this.getIncomingInfo())
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usersBookId }),
+        })
+        .then(response => response.json())
+        .then(() => this.getIncomingInfo())
         .catch(err => {
-            console.log(`Error in shipped function ${err}`)
+            console.log(`Error in acceptRequest function ${err}`)
         })
     }
 
@@ -111,15 +105,15 @@ class Exchange extends React.Component {
         return (
             <div className='exchange'>
                   {/* Incoming Request Table  */}
-                  <h3 className='incoming'>Incoming Requests</h3>
+                  <h3 className='incoming'>Gelen İstekler</h3>
                   {/* {this.state.incomingRequests.length > 0 && ( */}
                       <table class="table table-bordered">
                       <thead>
                           <tr>
-                          <th scope="col">Book Requested</th>
-                          <th scope="col">User</th>
-                          <th scope="col">Email</th>
-                          <th scope="col">Mark As Shipped</th>
+                          <th scope="col">İstenen Kitap</th>
+                          <th scope="col">Kullanıcı</th>
+                          <th scope="col">E-posta</th>
+                          <th scope="col">İşlem</th>
                           </tr>
                       </thead>
                       <tbody>
@@ -128,22 +122,25 @@ class Exchange extends React.Component {
                               <th scope="row">{req.title}</th>
                               <td>{req.username}</td>
                               <td>{req.email}</td>
-                              <td><button id={i} onClick={this.shipped}>Mark as Shipped</button></td>
+                              <td>{req.accepted
+                                ? <span style={{color:'green', fontWeight:'bold'}}>&#10003; İstek Kabul Edildi</span>
+                                : <button id={i} onClick={this.acceptRequest}>İsteği Kabul Et</button>}
+                              </td>
                           </tr>)
                           })}
                       </tbody>
                       </table>
                   {/* )} */}
                   {/* Outgoing Request Table  */}
-                  <h3 className='incoming'>Outgoing Requests</h3>
+                  <h3 className='incoming'>Giden İstekler</h3>
                   {this.state.outgoingRequests.length > 0 && (
                       <table class="table table-bordered">
                       <thead>
                           <tr>
-                          <th scope="col">Book Requested</th>
-                          <th scope="col">User</th>
-                          <th scope="col">Email</th>
-                          <th scope="col">Shipping Status</th>
+                          <th scope="col">İstenen Kitap</th>
+                          <th scope="col">Kullanıcı</th>
+                          <th scope="col">E-posta</th>
+                          <th scope="col">Durum</th>
                           </tr>
                       </thead>
                       <tbody>
@@ -152,7 +149,10 @@ class Exchange extends React.Component {
                               <th scope="row">{req.title}</th>
                               <td>{req.username}</td>
                               <td>{req.email}</td>
-                              <td>Pending...</td>
+                              <td>{req.accepted
+                                ? <span style={{color:'green'}}>&#10003; İstek kabul edildi — E-posta ile iletişime geçin</span>
+                                : <span style={{color:'gray'}}>Beklemede...</span>}
+                              </td>
                           </tr>)
                           })}
                       </tbody>

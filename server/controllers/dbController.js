@@ -59,6 +59,21 @@ dbController.findOldBook = (req, res, next) => {
     });
 }
 
+dbController.setBookFromBody = (req, res, next) => {
+  if (res.locals.bookInDB) return next();
+  const { isbn, title, author } = req.body;
+  const isbnValue = isbn && isbn.trim() ? isbn.trim() : `MANUAL-${Date.now()}-${Math.floor(Math.random() * 9999)}`;
+  res.locals.book = {
+    isbn_13: isbnValue,
+    title: title || 'Bilinmiyor',
+    author: author || 'Bilinmiyor',
+    subjects: 'Unknown',
+  };
+  // addOldBook uses req.body.isbn — sync it with the generated value
+  req.body.isbn = isbnValue;
+  return next();
+};
+
 dbController.addOldBook = (req, res, next) => {
   const { isbn, condition } = req.body;
   const userID = req.body.userId;
@@ -124,7 +139,7 @@ dbController.getMyBookRequests = async (req, res, next) => {
   const { userId } = req.params;
   try {
     const query =  
-    `SELECT books.title, users.username, users.email
+    `SELECT books.title, users.username, users.email, users_books.users_books_id, users_books.accepted
     FROM users
     JOIN users_books
     ON users_books.requester = users.user_id
@@ -147,7 +162,7 @@ dbController.getMyBookRequests = async (req, res, next) => {
 dbController.getOutgoingRequests = async (req, res, next) => {
   const { userId } = req.params;
   try {
-    const query = `SELECT books.title, users.username, users.email
+    const query = `SELECT books.title, users.username, users.email, users_books.accepted
     FROM users
     JOIN users_books
     ON users_books.requester = '${userId}'
@@ -191,12 +206,10 @@ dbController.requestBook = (req, res, next) => {
 // WHERE users_books.bookisbn = (SELECT isbn FROM books WHERE title = 'chamber of secrets') AND users_books.requester = (SELECT user_id FROM users WHERE username = 'username')
 
 dbController.shipBook = (req, res, next) => {
-  //erase row from users_books that contains the title and username of requestor
   const { title, username } = req.body;
   const query = `DELETE FROM users_books
   WHERE users_books.bookisbn = (SELECT isbn FROM books WHERE title = '${title}') 
   AND users_books.requester = (SELECT user_id FROM users WHERE username = '${username}')`
-  
   db.query(query)
   .then((data) => {
     res.locals.shippedBook = data.rows;
@@ -206,6 +219,20 @@ dbController.shipBook = (req, res, next) => {
     console.log(err)
     next(err);
   });
+}
+
+dbController.acceptRequest = async (req, res, next) => {
+  const { usersBookId } = req.body;
+  try {
+    await db.query(
+      `UPDATE users_books SET accepted = true WHERE users_books_id = $1`,
+      [usersBookId]
+    );
+    res.locals.accepted = true;
+    return next();
+  } catch (err) {
+    return next({ log: err, message: { err: 'Failed to accept request' } });
+  }
 }
 
 

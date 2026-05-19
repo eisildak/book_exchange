@@ -16,8 +16,8 @@ class Register extends React.Component {
         password: document.getElementById('password').value,
         passwordconfirm: document.getElementById('passwordconfirm').value,
         email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        address: document.getElementById('address').value,
+        phone: '',
+        address: '',
       })
     }).then(response => response.json())
       .then(data => {
@@ -31,15 +31,13 @@ class Register extends React.Component {
       <div className="usercred-box">
         {loggedIn && <Navigate to="/" replace={true} />}
         {error && <p style={{ color: 'red' }}>{error}</p>}
-        <div className="usercred-title">Book Exchange</div>
+        <div className="usercred-title">Kitap Takası</div>
         <form className="usercred-form">
-          <input type="text" placeholder="username" name="username" id="username" required />
-          <input type="password" placeholder="password" name="password" id="password" required />
-          <input type="password" placeholder="confirm password" name="passwordconfirm" id="passwordconfirm" required />
-          <input type="email" placeholder="email" name="email" id="email" required />
-          <input type="phone" placeholder="phone number" name="phone" id="phone" required />
-          <input type="text" placeholder="zipcode" name="address" id="address" required />
-          <input type="submit" value="Register" onClick={this.register} />
+          <input type="text" placeholder="kullanıcı adı" name="username" id="username" required />
+          <input type="password" placeholder="şifre" name="password" id="password" required />
+          <input type="password" placeholder="şifreyi onayla" name="passwordconfirm" id="passwordconfirm" required />
+          <input type="email" placeholder="e-posta" name="email" id="email" required />
+          <input type="submit" value="Kayıt Ol" onClick={this.register} />
         </form>
       </div>
     )

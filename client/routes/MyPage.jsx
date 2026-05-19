@@ -6,92 +6,118 @@ class MyPage extends React.Component {
     super(props);
     this.state = {
       myoldbooks: [],
-    }
-    this.getMyOldBooks();
-    this.rerender = this.rerender.bind(this);
+      adding: false,
+      error: null,
+      title: '',
+      author: '',
+      isbn: '',
+      condition: 'Like New',
+    };
     this.getMyOldBooks = this.getMyOldBooks.bind(this);
-    this.addOldBook = this.addOldBook.bind(this);
+    this.rerender = this.rerender.bind(this);
+    this.addManualBook = this.addManualBook.bind(this);
   }
 
-  getMyOldBooks = () => {
+  componentDidMount() {
+    this.getMyOldBooks();
+  }
+
+  getMyOldBooks() {
     fetch(`/api/getMyOldBookList/${this.props.userId}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
     })
-      .then(response => response.json())
-      .then(data => {
-        this.setState({ myoldbooks: data });
-      });
+      .then(r => r.json())
+      .then(data => this.setState({ myoldbooks: data }))
+      .catch(() => {});
   }
 
-  addOldBook = (e) => {
+  addManualBook(e) {
     e.preventDefault();
-    fetch('/api/addOldBook', {
+    const { title, author, isbn, condition } = this.state;
+    this.setState({ adding: true, error: null });
+
+    fetch('/api/addManualBook', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ 
-        isbn: document.getElementById('isbn').value, 
-        condition: document.getElementById('condition').value, 
-        userId: this.props.userId 
-      })
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ title, author, isbn, condition, userId: this.props.userId })
     })
-      .then(response => response.json())
-      .then((data) => {
-        window.location.href = window.location.href;
-      });
+      .then(r => r.json())
+      .then(() => {
+        this.setState({ title: '', author: '', isbn: '', condition: 'Like New', adding: false });
+        this.getMyOldBooks();
+      })
+      .catch(() => this.setState({ error: 'Kitap eklenemedi.', adding: false }));
   }
 
-  rerender = () => {
+  rerender() {
     this.getMyOldBooks();
-    window.location.href = window.location.href;
   }
 
   render() {
-    let table;
+    const { myoldbooks, adding, error, title, author, isbn, condition } = this.state;
+
     const rows = [];
-    if (this.state.myoldbooks.length > 0) {
+    if (myoldbooks.length > 0) {
       rows.push(
-        <tr>
-          <th key={0}>Title</th>
-          <th key={1}>Author</th>
-          <th key={2}>ISBN</th>
-          <th key={3}>Condition</th>
-          <th key={4}></th>
-        </tr>)
-      for (let i = 0; i < this.state.myoldbooks.length; i++) {
-        rows.push(<MyBookRow
-          {...this.state.myoldbooks[i]}
-          key={i}
-          rerender={this.rerender}
-        />)
-      }
-      table = <table className="result-table">{rows}</table>
+        <tr key="header">
+          <th>Başlık</th>
+          <th>Yazar</th>
+          <th>ISBN</th>
+          <th>Durum</th>
+          <th></th>
+        </tr>
+      );
+      myoldbooks.forEach((book, i) => {
+        rows.push(<MyBookRow {...book} key={i} rerender={this.rerender} />);
+      });
     }
+
     return (
       <div className="search-box">
-        <form className="search-form">
-          <input type="text" placeholder="Add book by isbn" name="isbn" id="isbn" required />
-          <select id="condition" name="condition">
-            <option value="Like New">Like New</option>
-            <option value="Fine">Fine</option>
-            <option value="Very Good">Very Good</option>
-            <option value="Good">Good</option>
-            <option value="Fair">Fair</option>
-            <option value="Poor">Poor</option>
+        <form className="search-form" onSubmit={this.addManualBook}>
+          <input
+            type="text"
+            placeholder="Kitap başlığı"
+            value={title}
+            onChange={e => this.setState({ title: e.target.value })}
+            required
+          />
+          <input
+            type="text"
+            placeholder="Yazar"
+            value={author}
+            onChange={e => this.setState({ author: e.target.value })}
+            required
+          />
+          <input
+            type="text"
+            placeholder="ISBN (isteğe bağlı)"
+            value={isbn}
+            onChange={e => this.setState({ isbn: e.target.value })}
+          />
+          <select
+            value={condition}
+            onChange={e => this.setState({ condition: e.target.value })}
+            id="condition"
+          >
+            <option value="Like New">Sıfır Gibi</option>
+            <option value="Fine">İyi</option>
+            <option value="Very Good">Çok İyi</option>
+            <option value="Good">Orta</option>
+            <option value="Fair">Makul</option>
+            <option value="Poor">Kötü</option>
           </select>
-          <input type="submit" value="Add" onClick={this.addOldBook} />
+          <input type="submit" value={adding ? 'Ekleniyor...' : '+ Ekle'} disabled={adding} />
         </form>
-        <div class="result-box">
-          {table}
+
+        {error && <p style={{ color: '#e53e3e', margin: '10px 0 0', fontSize: 14 }}>{error}</p>}
+
+        <div className="result-box">
+          {rows.length > 0 && <table className="result-table">{rows}</table>}
         </div>
       </div>
-    )
+    );
   }
 }
 

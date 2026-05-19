@@ -30,11 +30,11 @@ class Search extends React.Component {
     if (this.state.availiableBooks.length > 0) {
       rows.push(
         <tr>
-          <th key={0}>Title</th>
-          <th key={1}>Author</th>
+          <th key={0}>Başlık</th>
+          <th key={1}>Yazar</th>
           <th key={2}>ISBN</th>
-          <th key={3}>Condition</th>
-          <th key={4}>Owner</th>
+          <th key={3}>Durum</th>
+          <th key={4}>Sahip</th>
           <th key={5}></th>
         </tr>)
       for (let i = 0; i < this.state.availiableBooks.length; i++) {
@@ -51,8 +51,8 @@ class Search extends React.Component {
     return (
       <div className="search-box">
         <form className="search-form">
-          <input type="text" placeholder="search book by title" name="title" id="searchString" required />
-          <input type="submit" value="search" onClick={this.searchBook} />
+          <input type="text" placeholder="kitap başlığına göre ara" name="title" id="searchString" required />
+          <input type="submit" value="Ara" onClick={this.searchBook} />
         </form>
         <div className="result-box">
           {table}
