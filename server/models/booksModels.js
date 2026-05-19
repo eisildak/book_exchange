@@ -1,11 +1,12 @@
 const { Pool } = require('pg');
 
 // add elephant SQL url here. Queries to create tables are below :) 
-const PG_URI = 'postgresql://localhost/bookexchange';
+const PG_URI = process.env.DATABASE_URL || 'postgresql://localhost/bookexchange';
 
 // create a new pool here using the connection string above
 const pool = new Pool({
   connectionString: PG_URI,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
 });
 
 module.exports = {

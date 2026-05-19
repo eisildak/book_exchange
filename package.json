@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server/server.js",
-    "build": "webpack",
+    "start": "node server/server.js",
+    "build": "webpack --mode production",
     "dev": "concurrently \" webpack-dev-server --hot --open\" \"nodemon server/server.js\"",
     "test": "jest"
   },
