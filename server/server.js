@@ -13,6 +13,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.resolve(__dirname, '../public')));
 app.use(express.static(path.resolve(__dirname, '../client')));
+app.use('/build', express.static(path.resolve(__dirname, '../build')));
 // Awww thank you <3 <3 
 // You're welcome :)
 
